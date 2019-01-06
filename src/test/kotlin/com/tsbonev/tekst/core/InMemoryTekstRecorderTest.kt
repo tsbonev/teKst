@@ -9,29 +9,31 @@ import org.junit.Assert.assertThat
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-class InMemoryTekstTest {
-	private lateinit var tekst : Tekst
+class InMemoryTekstRecorderTest {
+	private lateinit var tekst : TekstRecorder
+
+	private val simpleTekstBuilder = SimpleTekstBuilder()
 
 	@Before
 	fun setUp(){
-		tekst = InMemoryTekst()
+		tekst = InMemoryTekstRecorder(simpleTekstBuilder)
 	}
 
 	@Test
 	fun `First change creates text`() {
-		val change = tekst.makeChange("::id::", "::content::")
+		val change = tekst.edit("::id::", "::content::")
 
-		val history = tekst.viewHistory("::id::")
+		val history = tekst.view("::id::")
 
 		assertThat(history, containsInAnyOrder(change))
 	}
 
 	@Test
 	fun `Equivalent changes return the last change and doesn't change history`() {
-		val firstChange = tekst.makeChange("::id::", "::content::")
-		val secondChange = tekst.makeChange("::id::", "::content::")
+		val firstChange = tekst.edit("::id::", "::content::")
+		val secondChange = tekst.edit("::id::", "::content::")
 
-		val history = tekst.viewHistory("::id::")
+		val history = tekst.view("::id::")
 
 		assertThat(firstChange, Is(secondChange))
 		assertThat(history, containsInAnyOrder(firstChange))
@@ -39,22 +41,22 @@ class InMemoryTekstTest {
 
 	@Test
 	fun `Second change is replacement and gets recorded`() {
-		val firstChange = tekst.makeChange("::id::", "::content::")
-		val secondChange = tekst.makeChange("::id::", "[:ConTENT:]")
+		val firstChange = tekst.edit("::id::", "::content::")
+		val secondChange = tekst.edit("::id::", "[:ConTENT:]")
 
-		val history = tekst.viewHistory("::id::")
+		val history = tekst.view("::id::")
 
 		assertThat(history, containsInAnyOrder(firstChange, secondChange))
 	}
 
 	@Test
 	fun `Multiple replacement changes get recorded`() {
-		val firstChange = tekst.makeChange("::id::", "::content::")
-		val secondChange = tekst.makeChange("::id::", "[:content:]")
-		val thirdChange = tekst.makeChange("::id::", ":[conTent]:")
-		val fourthChange = tekst.makeChange("::id::", ":[ConTenT]:")
+		val firstChange = tekst.edit("::id::", "::content::")
+		val secondChange = tekst.edit("::id::", "[:content:]")
+		val thirdChange = tekst.edit("::id::", ":[conTent]:")
+		val fourthChange = tekst.edit("::id::", ":[ConTenT]:")
 
-		val history = tekst.viewHistory("::id::")
+		val history = tekst.view("::id::")
 
 		assertThat(history, containsInAnyOrder(firstChange, secondChange, thirdChange, fourthChange))
 	}
